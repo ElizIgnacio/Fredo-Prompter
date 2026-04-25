@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teleprompter</title>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --panel: #141414;
+      --text: #e8e8e8;
+      --accent: #3d9cfd;
+      --read-line: rgba(61, 156, 253, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* Painel de configuração */
+    #setup {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 1.5rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    #setup.is-hidden {
+      display: none;
+    }
+
+    #setup h1 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin: 0 0 0.25rem;
+    }
+
+    #setup p.hint {
+      margin: 0;
+      font-size: 0.9rem;
+      opacity: 0.75;
+      line-height: 1.45;
+    }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    textarea#script {
+      width: 100%;
+      min-height: 220px;
+      padding: 0.85rem;
+      border: 1px solid #333;
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      font-size: 1rem;
+      line-height: 1.5;
+      resize: vertical;
+    }
+
+    textarea#script:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .field {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    input.input-num {
+      width: 100%;
+      max-width: 7rem;
+      padding: 0.5rem 0.65rem;
+      border: 1px solid #333;
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      font-size: 1rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    input.input-num:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    input.input-num::-webkit-outer-spin-button,
+    input.input-num::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input.input-num[type="number"] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+
+    button.primary {
+      padding: 0.75rem 1.25rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+
+    button.primary:hover {
+      filter: brightness(1.08);
+    }
+
+    button.primary:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* Modo teleprompter: texto na parte superior */
+    #prompter {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    #prompter.active {
+      display: block;
+    }
+
+    /* Linha de leitura: ~22% do topo (olhar parece na câmera em laptops com webcam no centro superior) */
+    #readGuide {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 22%;
+      height: 2px;
+      background: var(--read-line);
+      pointer-events: none;
+      z-index: 2;
+      box-shadow: 0 0 20px rgba(61, 156, 253, 0.2);
+    }
+
+    #scrollViewport {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    #scrollContent {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      padding: 0 8vw 100vh;
+      will-change: transform;
+    }
+
+    #scrollContent .line {
+      margin: 0;
+      padding: 0.35em 0;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    /* Barra de controles flutuante */
+    #hud {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      padding: 0.65rem 1rem;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem 1rem;
+      justify-content: center;
+    }
+
+    #hud button,
+    #hud label {
+      font-size: 0.8rem;
+    }
+
+    #hud button {
+      padding: 0.45rem 0.85rem;
+      border-radius: 6px;
+      border: 1px solid #444;
+      background: rgba(30, 30, 30, 0.95);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    #hud button:hover {
+      border-color: var(--accent);
+    }
+
+    #hud .speed-inline {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    #hud .timer-inline {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    #hud input.input-num {
+      width: 4.5rem;
+      max-width: none;
+      padding: 0.35rem 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    #hud .timer-chip {
+      display: inline-block;
+      padding: 0.3rem 0.5rem;
+      border: 1px solid #444;
+      border-radius: 999px;
+      background: rgba(30, 30, 30, 0.95);
+      font-size: 0.75rem;
+      font-variant-numeric: tabular-nums;
+      color: #ddd;
+    }
+
+    .kbd {
+      opacity: 0.55;
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="setup">
+    <h1>Teleprompter</h1>
+    <p class="hint">
+      Cole o texto abaixo. Ao iniciar, a janela mostra o texto na <strong>parte superior</strong> da tela para o olhar parecer na câmera.
+      Ajuste a velocidade antes ou durante a leitura. Se definir tempo-alvo, a velocidade inicial é ajustada automaticamente.
+    </p>
+
+    <div>
+      <label for="script">Texto para ler</label>
+      <textarea
+        id="script"
+        placeholder="Cole ou digite seu roteiro aqui..."
+        autofocus
+      ></textarea>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="speedSetup">Velocidade de rolagem (px/s)</label>
+        <input type="number" class="input-num" id="speedSetup" min="5" max="120" value="40" step="1" inputmode="numeric" />
+      </div>
+      <div class="field">
+        <label for="fontSetup">Tamanho do texto (px)</label>
+        <input type="number" class="input-num" id="fontSetup" min="16" max="56" value="28" step="1" inputmode="numeric" />
+      </div>
+      <div class="field">
+        <label for="targetMinSetup">Tempo-alvo (mm:ss)</label>
+        <div class="row" style="gap: 0.5rem;">
+          <input type="number" class="input-num" id="targetMinSetup" min="0" max="180" value="0" step="1" inputmode="numeric" />
+          <span>:</span>
+          <input type="number" class="input-num" id="targetSecSetup" min="0" max="59" value="0" step="1" inputmode="numeric" />
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="primary" id="btnStart">Iniciar teleprompter</button>
+  </div>
+
+  <div id="prompter" aria-hidden="true">
+    <div id="readGuide" aria-hidden="true"></div>
+    <div id="scrollViewport">
+      <div id="scrollContent"></div>
+    </div>
+    <div id="hud">
+      <button type="button" id="btnPause" title="Espaço">Pausar</button>
+      <button type="button" id="btnBack">Voltar ao início</button>
+      <button type="button" id="btnEdit">Editar texto</button>
+      <div class="speed-inline">
+        <label for="speedHud">Velocidade (px/s)</label>
+        <input type="number" class="input-num" id="speedHud" min="5" max="120" value="40" step="1" inputmode="numeric" />
+      </div>
+      <div class="timer-inline">
+        <span class="timer-chip" id="timerElapsed">Decorrido 00:00</span>
+        <span class="timer-chip" id="timerRemaining">Restante --:--</span>
+      </div>
+      <span class="kbd">Espaço pausa · +/- ajusta velocidade</span>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const setup = document.getElementById("setup");
+      const prompter = document.getElementById("prompter");
+      const scriptEl = document.getElementById("script");
+      const scrollContent = document.getElementById("scrollContent");
+      const readGuide = document.getElementById("readGuide");
+
+      const speedSetup = document.getElementById("speedSetup");
+      const fontSetup = document.getElementById("fontSetup");
+      const targetMinSetup = document.getElementById("targetMinSetup");
+      const targetSecSetup = document.getElementById("targetSecSetup");
+
+      const btnStart = document.getElementById("btnStart");
+      const btnPause = document.getElementById("btnPause");
+      const btnBack = document.getElementById("btnBack");
+      const btnEdit = document.getElementById("btnEdit");
+      const speedHud = document.getElementById("speedHud");
+      const timerElapsed = document.getElementById("timerElapsed");
+      const timerRemaining = document.getElementById("timerRemaining");
+
+      let fontSizePx = 28;
+      let speedPxPerSec = 40;
+      let offsetY = 0;
+      let paused = false;
+      let lastTs = 0;
+      let rafId = 0;
+      let elapsedSec = 0;
+      let activeTargetSec = 0;
+
+      const READ_LINE_FRAC = 0.22;
+
+      const SPEED_MIN = 5;
+      const SPEED_MAX = 120;
+      const FONT_MIN = 16;
+      const FONT_MAX = 56;
+      const TARGET_MIN_MIN = 0;
+      const TARGET_MIN_MAX = 180;
+      const TARGET_SEC_MIN = 0;
+      const TARGET_SEC_MAX = 59;
+
+      function clampSpeed(n) {
+        return Math.max(SPEED_MIN, Math.min(SPEED_MAX, Math.round(Number(n))));
+      }
+
+      function clampFont(n) {
+        return Math.max(FONT_MIN, Math.min(FONT_MAX, Math.round(Number(n))));
+      }
+
+      function clampTargetMinutes(n) {
+        return Math.max(TARGET_MIN_MIN, Math.min(TARGET_MIN_MAX, Math.round(Number(n))));
+      }
+
+      function clampTargetSeconds(n) {
+        return Math.max(TARGET_SEC_MIN, Math.min(TARGET_SEC_MAX, Math.round(Number(n))));
+      }
+
+      function readSpeedFromInput(el) {
+        const raw = el.value.trim();
+        if (raw === "" || raw === "-") return null;
+        const n = Number(raw);
+        if (Number.isNaN(n)) return null;
+        return clampSpeed(n);
+      }
+
+      function readFontFromInput(el) {
+        const raw = el.value.trim();
+        if (raw === "" || raw === "-") return null;
+        const n = Number(raw);
+        if (Number.isNaN(n)) return null;
+        return clampFont(n);
+      }
+
+      function readTargetFromInput(el, clampFn) {
+        const raw = el.value.trim();
+        if (raw === "" || raw === "-") return null;
+        const n = Number(raw);
+        if (Number.isNaN(n)) return null;
+        return clampFn(n);
+      }
+
+      function applySpeed(v) {
+        speedPxPerSec = v;
+        speedSetup.value = String(v);
+        speedHud.value = String(v);
+      }
+
+      function applyFont(v) {
+        fontSizePx = v;
+        fontSetup.value = String(v);
+      }
+
+      function applyTarget(mins, secs) {
+        targetMinSetup.value = String(mins);
+        targetSecSetup.value = String(secs);
+      }
+
+      function formatClock(totalSeconds) {
+        const safe = Math.max(0, Math.floor(totalSeconds));
+        const mins = Math.floor(safe / 60);
+        const secs = safe % 60;
+        return String(mins).padStart(2, "0") + ":" + String(secs).padStart(2, "0");
+      }
+
+      function updateTimerHud() {
+        timerElapsed.textContent = "Decorrido " + formatClock(elapsedSec);
+        if (activeTargetSec > 0) {
+          const remaining = Math.max(0, Math.ceil(activeTargetSec - elapsedSec));
+          timerRemaining.textContent = "Restante " + formatClock(remaining);
+        } else {
+          timerRemaining.textContent = "Restante --:--";
+        }
+      }
+
+      function syncSpeedFromSetup() {
+        const v = readSpeedFromInput(speedSetup);
+        if (v === null) return;
+        applySpeed(v);
+      }
+
+      function syncSpeedFromHud() {
+        const v = readSpeedFromInput(speedHud);
+        if (v === null) return;
+        applySpeed(v);
+      }
+
+      function syncFontFromSetup() {
+        const v = readFontFromInput(fontSetup);
+        if (v === null) return;
+        applyFont(v);
+      }
+
+      function readTargetTotalSec() {
+        let mins = readTargetFromInput(targetMinSetup, clampTargetMinutes);
+        let secs = readTargetFromInput(targetSecSetup, clampTargetSeconds);
+        if (mins === null) mins = 0;
+        if (secs === null) secs = 0;
+        applyTarget(mins, secs);
+        return mins * 60 + secs;
+      }
+
+      speedSetup.addEventListener("input", syncSpeedFromSetup);
+      speedSetup.addEventListener("change", function () {
+        const v = readSpeedFromInput(speedSetup);
+        if (v === null) applySpeed(speedPxPerSec);
+        else applySpeed(v);
+      });
+
+      fontSetup.addEventListener("input", syncFontFromSetup);
+      fontSetup.addEventListener("change", function () {
+        const v = readFontFromInput(fontSetup);
+        if (v === null) applyFont(fontSizePx);
+        else applyFont(v);
+      });
+
+      speedHud.addEventListener("input", syncSpeedFromHud);
+      speedHud.addEventListener("change", function () {
+        const v = readSpeedFromInput(speedHud);
+        if (v === null) applySpeed(speedPxPerSec);
+        else applySpeed(v);
+      });
+
+      targetMinSetup.addEventListener("change", function () {
+        const mins = readTargetFromInput(targetMinSetup, clampTargetMinutes);
+        if (mins === null) {
+          readTargetTotalSec();
+          return;
+        }
+        const secs = readTargetFromInput(targetSecSetup, clampTargetSeconds) ?? 0;
+        applyTarget(mins, secs);
+      });
+
+      targetSecSetup.addEventListener("change", function () {
+        const secs = readTargetFromInput(targetSecSetup, clampTargetSeconds);
+        if (secs === null) {
+          readTargetTotalSec();
+          return;
+        }
+        const mins = readTargetFromInput(targetMinSetup, clampTargetMinutes) ?? 0;
+        applyTarget(mins, secs);
+      });
+
+      function buildContent() {
+        const raw = scriptEl.value;
+        const lines = raw.replace(/\r\n/g, "\n").split("\n");
+        scrollContent.innerHTML = "";
+        scrollContent.style.fontSize = fontSizePx + "px";
+        scrollContent.style.color = "#e8e8e8";
+        scrollContent.style.textAlign = "center";
+
+        lines.forEach(function (line) {
+          const p = document.createElement("p");
+          p.className = "line";
+          p.textContent = line.length ? line : " ";
+          scrollContent.appendChild(p);
+        });
+
+        const guideY = getReadLineY();
+        scrollContent.style.paddingTop = Math.max(0, guideY - fontSizePx * 0.5) + "px";
+        scrollContent.style.paddingBottom = window.innerHeight + "px";
+      }
+
+      function getReadLineY() {
+        return window.innerHeight * READ_LINE_FRAC;
+      }
+
+      function getMinOffsetY() {
+        const total = scrollContent.offsetHeight;
+        const h = window.innerHeight;
+        if (total <= h) return 0;
+        return -(total - h);
+      }
+
+      function getScrollDistancePx() {
+        return Math.max(0, -getMinOffsetY());
+      }
+
+      function resetScroll() {
+        offsetY = 0;
+        scrollContent.style.transform = "translateY(0px)";
+      }
+
+      function tick(ts) {
+        if (!lastTs) lastTs = ts;
+        const dt = Math.min((ts - lastTs) / 1000, 0.05);
+        lastTs = ts;
+
+        if (!paused) {
+          elapsedSec += dt;
+          offsetY -= speedPxPerSec * dt;
+          const minY = getMinOffsetY();
+          if (offsetY < minY) offsetY = minY;
+          scrollContent.style.transform = "translateY(" + offsetY + "px)";
+        }
+
+        updateTimerHud();
+
+        rafId = requestAnimationFrame(tick);
+      }
+
+      function startRaf() {
+        lastTs = 0;
+        cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(tick);
+      }
+
+      function openPrompter() {
+        if (!scriptEl.value.trim()) {
+          scriptEl.focus();
+          return;
+        }
+        let sv = readSpeedFromInput(speedSetup);
+        let fv = readFontFromInput(fontSetup);
+        if (sv === null) sv = clampSpeed(speedPxPerSec);
+        if (fv === null) fv = clampFont(fontSizePx);
+        applySpeed(sv);
+        applyFont(fv);
+        buildContent();
+        activeTargetSec = readTargetTotalSec();
+        if (activeTargetSec > 0) {
+          const distance = getScrollDistancePx();
+          if (distance > 0) {
+            const autoSpeed = clampSpeed(distance / activeTargetSec);
+            applySpeed(autoSpeed);
+          }
+        }
+        setup.classList.add("is-hidden");
+        prompter.classList.add("active");
+        prompter.setAttribute("aria-hidden", "false");
+        readGuide.style.top = READ_LINE_FRAC * 100 + "%";
+        resetScroll();
+        elapsedSec = 0;
+        updateTimerHud();
+        paused = false;
+        btnPause.textContent = "Pausar";
+        startRaf();
+      }
+
+      function closePrompter() {
+        cancelAnimationFrame(rafId);
+        prompter.classList.remove("active");
+        prompter.setAttribute("aria-hidden", "true");
+        setup.classList.remove("is-hidden");
+      }
+
+      btnStart.addEventListener("click", openPrompter);
+
+      btnPause.addEventListener("click", function () {
+        paused = !paused;
+        btnPause.textContent = paused ? "Continuar" : "Pausar";
+      });
+
+      btnBack.addEventListener("click", function () {
+        resetScroll();
+        elapsedSec = 0;
+        updateTimerHud();
+      });
+
+      btnEdit.addEventListener("click", function () {
+        closePrompter();
+        scriptEl.focus();
+      });
+
+      window.addEventListener("keydown", function (e) {
+        if (!prompter.classList.contains("active")) return;
+        if (e.code === "Space") {
+          e.preventDefault();
+          btnPause.click();
+        } else if (e.key === "+" || e.key === "=") {
+          e.preventDefault();
+          applySpeed(clampSpeed(speedPxPerSec + 5));
+        } else if (e.key === "-" || e.key === "_") {
+          e.preventDefault();
+          applySpeed(clampSpeed(speedPxPerSec - 5));
+        }
+      });
+
+      window.addEventListener("resize", function () {
+        if (!prompter.classList.contains("active")) return;
+        readGuide.style.top = READ_LINE_FRAC * 100 + "%";
+        const guideY = getReadLineY();
+        scrollContent.style.paddingTop = Math.max(0, guideY - fontSizePx * 0.5) + "px";
+        scrollContent.style.paddingBottom = window.innerHeight + "px";
+        const minY = getMinOffsetY();
+        if (offsetY < minY) offsetY = minY;
+        scrollContent.style.transform = "translateY(" + offsetY + "px)";
+      });
+    })();
+  </script>
+</body>
+</html>
