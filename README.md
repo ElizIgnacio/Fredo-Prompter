@@ -4,9 +4,27 @@ Teleprompter simples para **apresentações em vídeo**: o texto fica na **parte
 
 Tudo roda em **um único arquivo** (`index.html`) — sem Node, sem build e sem conta em serviço externo.
 
+## Abrir na internet (GitHub Pages)
+
+Este repositório pode ser usado pelo endereço público:
+
+**[https://elizignacio.github.io/Fredo-Prompter/](https://elizignacio.github.io/Fredo-Prompter/)**
+
+A primeira publicação pode levar **1 a 2 minutos**. Se a página ainda não abrir, atualize o navegador ou confira em **Settings → Pages** se o *build* terminou sem erro.
+
+### Como ativar GitHub Pages em outro repositório (passo a passo)
+
+1. No GitHub, abra o repositório → **Settings** (Configurações).
+2. No menu lateral, clique em **Pages**.
+3. Em **Build and deployment** → **Source**, escolha **Deploy from a branch**.
+4. Em **Branch**, selecione **`main`** (ou `master`, se for o caso) e pasta **`/ (root)`** → **Save**.
+5. O site ficará em `https://SEU_USUARIO.github.io/NOME_DO_REPO/` (o GitHub mostra o link na mesma página de Settings → Pages).
+
+O `index.html` precisa estar na **raiz** do branch escolhido (como neste projeto).
+
 ## Como usar
 
-1. Abra o arquivo `index.html` no navegador (duplo clique ou arraste para Chrome / Safari / Firefox).
+1. Abra o arquivo `index.html` no navegador (duplo clique ou arraste para Chrome / Safari / Firefox), **ou** use o link do GitHub Pages acima.
 2. Cole o roteiro na caixa de texto.
 3. Ajuste **velocidade** (px/s) e **tamanho do texto** (px) nos campos numéricos.
 4. Opcional: defina **Tempo-alvo (mm:ss)**. Se for maior que zero, ao iniciar a **velocidade é calculada** para tentar terminar o texto nesse tempo.
