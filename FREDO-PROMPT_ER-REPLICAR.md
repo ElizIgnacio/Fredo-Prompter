@@ -1,56 +1,56 @@
-# Prompt para replicar o teleprompter no Cursor
+# Prompt to replicate Fredo-Prompter in Cursor
 
-Copie o bloco abaixo (tudo entre as linhas `---`) e cole em um **novo chat do Cursor** na pasta do projeto onde quiser gerar o arquivo. Uma pasta vazia ou um projeto novo serve.
-
----
-
-## Prompt (copiar daqui)
-
-Crie um **teleprompter como site estático** em um único arquivo `index.html` (HTML + CSS + JavaScript, sem frameworks e sem servidor obrigatório — deve abrir com duplo clique no navegador).
-
-### Objetivo de uso
-
-- Uso em **apresentações em vídeo**: o texto deve ficar na **parte superior da tela** (~22% da altura com uma linha guia horizontal discreta), para quem lê parecer estar olhando para a **câmera** em laptops com webcam no topo.
-- Pode ficar em **janela separada** do restante do trabalho (segunda janela do navegador).
-
-### Tela inicial (configuração)
-
-- Título e texto de ajuda em **português (pt-BR)**.
-- **Área grande para colar o roteiro** (textarea).
-- **Velocidade de rolagem**: campo numérico **digitável** (não slider), rótulo tipo “Velocidade de rolagem (px/s)”, valores inteiros entre **5** e **120**, padrão **40**. Unidade: pixels por segundo.
-- **Tamanho do texto**: campo numérico **digitável**, entre **16** e **56** px, padrão **28**.
-- Botão **Iniciar teleprompter** (só faz sentido se houver texto; se vazio, focar no textarea).
-- Se o usuário deixar número inválido ou vazio nos campos, ao sair do campo (**change**), restaurar o **último valor válido**.
-
-### Modo teleprompter (tela cheia da página)
-
-- Fundo escuro, texto claro, texto **centralizado horizontalmente**, margens laterais confortáveis (ex.: padding horizontal em vw).
-- **Rolagem automática** para cima: o conteúdo se move com `requestAnimationFrame` e velocidade em **px/s**.
-- **Linha de leitura** horizontal na altura **~22%** do viewport (cor suave, sem atrapalhar a leitura).
-- **Padding superior** no bloco de texto para que a **primeira linha** comece alinhada à zona da linha de leitura; **padding inferior** grande para o final do texto não “cortar” seco.
-- **Limite do fim da rolagem**: quando o texto acabar, não ultrapassar o fim do conteúdo (cálculo com `offsetHeight` e altura da janela).
-- **Barra de controles** fixa na parte inferior (HUD): botões **Pausar / Continuar**, **Voltar ao início**, **Editar texto** (volta à tela inicial sem perder o texto colado).
-- No HUD: **mesmo campo numérico de velocidade** (px/s), sincronizado com a tela inicial.
-- **Teclado** (com o teleprompter ativo): **Espaço** pausa/continua; **+** e **-** ajustam a velocidade em passos de **5** (respeitando min/max).
-- **Redimensionar a janela**: recalcular padding da linha de leitura e limites de rolagem sem quebrar a posição de forma estranha.
-
-### Implementação
-
-- Um arquivo só: `index.html`.
-- `lang="pt-BR"`, meta viewport, estilos coerentes (campos com foco visível, botão primário destacado).
-- Campos numéricos: `type="number"` com `inputmode="numeric"`; pode esconder os spinners nativos via CSS para parecer mais “caixa de texto”.
-- Texto do roteiro: quebrar por linhas (`\n`) em parágrafos; preservar linhas vazias de forma razoável.
-
-Gere o `index.html` completo e funcional.
+Copy the block below (everything between the `---` lines) and paste it into a **new Cursor chat** in the project folder where you want the file generated. An empty folder or a new project works.
 
 ---
 
-## Prompt (copiar até aqui)
+## Prompt (copy from here)
 
-### Como usar em outro terminal / máquina
+Build a **teleprompter as a static website** in a single `index.html` file (HTML + CSS + JavaScript, no frameworks, no required server — it must open with a double-click in the browser).
 
-1. Abra uma pasta no Cursor (nova ou existente).
-2. Cole o prompt acima no chat do agente e peça para criar o arquivo (por exemplo: “Implemente isso criando `index.html` na raiz”).
-3. Abra `index.html` no navegador (duplo clique ou “Open with Live Server”, se usar extensão).
+### Intended use
 
-Não é necessário Node, npm nem conta em serviço externo para usar o teleprompter.
+- **Video presentations**: the script should appear in the **upper part of the screen** (~22% of the height with a subtle horizontal guide line) so the reader’s gaze stays closer to the **camera** on laptops with a top-center webcam.
+- Can live in a **separate browser window** from the rest of your work.
+
+### Setup screen (configuration)
+
+- Title and help text in **English (`lang="en"`)**.
+- **Large area to paste the script** (textarea).
+- **Scroll speed**: **typed** numeric field (not a slider), label like “Scroll speed (px/s)”, integer values between **5** and **120**, default **40**. Unit: pixels per second.
+- **Font size**: **typed** numeric field, between **16** and **56** px, default **28**.
+- Button **Start Fredo-Prompter** (only meaningful if there is text; if empty, focus the textarea).
+- If the user leaves an invalid or empty number in a field, on leaving the field (**change**), restore the **last valid value**.
+
+### Prompter mode (full page)
+
+- Dark background, light text, text **horizontally centered**, comfortable side margins (e.g. horizontal padding in `vw`).
+- **Auto scroll** upward: content moves with `requestAnimationFrame` at **px/s** speed.
+- **Read line**: horizontal line at **~22%** of the viewport height (soft color, not distracting).
+- **Top padding** on the text block so the **first line** starts aligned with the read-line zone; **large bottom padding** so the end of the script does not cut off abruptly.
+- **End-of-scroll clamp**: when the script ends, do not scroll past the end of the content (use `offsetHeight` and window height).
+- **Fixed bottom control bar (HUD)**: buttons **Pause / Resume**, **Back to start**, **Edit script** (returns to setup without losing pasted text).
+- In the HUD: the **same numeric speed field** (px/s), synced with the setup screen.
+- **Keyboard** (while prompter is active): **Space** toggles pause; **+** and **-** adjust speed in steps of **5** (respect min/max).
+- **Window resize**: recompute read-line padding and scroll limits without jarring jumps.
+
+### Implementation details
+
+- Single file: `index.html`.
+- `lang="en"`, viewport meta, coherent styles (visible focus on fields, prominent primary button).
+- Numeric fields: `type="number"` with `inputmode="numeric"`; optional CSS to hide native spinners so fields feel more like plain text boxes.
+- Script text: split on newlines (`\n`) into paragraphs; handle blank lines reasonably.
+
+Deliver a complete, working `index.html`.
+
+---
+
+## Prompt (copy up to here)
+
+### How to use on another machine / Cursor window
+
+1. Open a folder in Cursor (new or existing).
+2. Paste the prompt above into the agent chat and ask it to create the file (for example: “Implement this by creating `index.html` at the repo root”).
+3. Open `index.html` in the browser (double-click or “Open with Live Server” if you use that extension).
+
+Node, npm, and an external service account are **not** required to run the teleprompter.
