@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -25,7 +25,7 @@
       color: var(--text);
     }
 
-    /* Painel de configuração */
+    /* Setup panel */
     #setup {
       max-width: 640px;
       margin: 0 auto;
@@ -140,7 +140,7 @@
       cursor: not-allowed;
     }
 
-    /* Modo teleprompter: texto na parte superior */
+    /* Prompter mode: text in upper area */
     #prompter {
       display: none;
       position: fixed;
@@ -154,7 +154,7 @@
       display: block;
     }
 
-    /* Linha de leitura: ~22% do topo (olhar parece na câmera em laptops com webcam no centro superior) */
+    /* Read line ~22% from top (eye line toward camera on typical laptop webcams) */
     #readGuide {
       position: absolute;
       left: 0;
@@ -190,7 +190,7 @@
       word-wrap: break-word;
     }
 
-    /* Barra de controles flutuante */
+    /* Bottom HUD */
     #hud {
       position: fixed;
       bottom: 0;
@@ -265,30 +265,30 @@
   <div id="setup">
     <h1>Fredo-Prompter</h1>
     <p class="hint">
-      Cole o texto abaixo. Ao iniciar, a janela mostra o texto na <strong>parte superior</strong> da tela para o olhar parecer na câmera.
-      Ajuste a velocidade antes ou durante a leitura. Se definir tempo-alvo, a velocidade inicial é ajustada automaticamente.
+      Paste your script below. When you start, the text appears in the <strong>upper part</strong> of the screen so your gaze stays closer to the camera.
+      Adjust speed before or while reading. If you set a target time, the initial scroll speed is calculated automatically.
     </p>
 
     <div>
-      <label for="script">Texto para ler</label>
+      <label for="script">Script to read</label>
       <textarea
         id="script"
-        placeholder="Cole ou digite seu roteiro aqui..."
+        placeholder="Paste or type your script here..."
         autofocus
       ></textarea>
     </div>
 
     <div class="row">
       <div class="field">
-        <label for="speedSetup">Velocidade de rolagem (px/s)</label>
+        <label for="speedSetup">Scroll speed (px/s)</label>
         <input type="number" class="input-num" id="speedSetup" min="5" max="120" value="40" step="1" inputmode="numeric" />
       </div>
       <div class="field">
-        <label for="fontSetup">Tamanho do texto (px)</label>
+        <label for="fontSetup">Font size (px)</label>
         <input type="number" class="input-num" id="fontSetup" min="16" max="56" value="28" step="1" inputmode="numeric" />
       </div>
       <div class="field">
-        <label for="targetMinSetup">Tempo-alvo (mm:ss)</label>
+        <label for="targetMinSetup">Target time (mm:ss)</label>
         <div class="row" style="gap: 0.5rem;">
           <input type="number" class="input-num" id="targetMinSetup" min="0" max="180" value="0" step="1" inputmode="numeric" />
           <span>:</span>
@@ -297,7 +297,7 @@
       </div>
     </div>
 
-    <button type="button" class="primary" id="btnStart">Iniciar Fredo-Prompter</button>
+    <button type="button" class="primary" id="btnStart">Start Fredo-Prompter</button>
   </div>
 
   <div id="prompter" aria-hidden="true">
@@ -306,18 +306,18 @@
       <div id="scrollContent"></div>
     </div>
     <div id="hud">
-      <button type="button" id="btnPause" title="Espaço">Pausar</button>
-      <button type="button" id="btnBack">Voltar ao início</button>
-      <button type="button" id="btnEdit">Editar texto</button>
+      <button type="button" id="btnPause" title="Space">Pause</button>
+      <button type="button" id="btnBack">Back to start</button>
+      <button type="button" id="btnEdit">Edit script</button>
       <div class="speed-inline">
-        <label for="speedHud">Velocidade (px/s)</label>
+        <label for="speedHud">Speed (px/s)</label>
         <input type="number" class="input-num" id="speedHud" min="5" max="120" value="40" step="1" inputmode="numeric" />
       </div>
       <div class="timer-inline">
-        <span class="timer-chip" id="timerElapsed">Decorrido 00:00</span>
-        <span class="timer-chip" id="timerRemaining">Restante --:--</span>
+        <span class="timer-chip" id="timerElapsed">Elapsed 00:00</span>
+        <span class="timer-chip" id="timerRemaining">Remaining --:--</span>
       </div>
-      <span class="kbd">Espaço pausa · +/- ajusta velocidade</span>
+      <span class="kbd">Space: pause · +/-: speed</span>
     </div>
   </div>
 
@@ -426,12 +426,12 @@
       }
 
       function updateTimerHud() {
-        timerElapsed.textContent = "Decorrido " + formatClock(elapsedSec);
+        timerElapsed.textContent = "Elapsed " + formatClock(elapsedSec);
         if (activeTargetSec > 0) {
           const remaining = Math.max(0, Math.ceil(activeTargetSec - elapsedSec));
-          timerRemaining.textContent = "Restante " + formatClock(remaining);
+          timerRemaining.textContent = "Remaining " + formatClock(remaining);
         } else {
-          timerRemaining.textContent = "Restante --:--";
+          timerRemaining.textContent = "Remaining --:--";
         }
       }
 
@@ -595,7 +595,7 @@
         elapsedSec = 0;
         updateTimerHud();
         paused = false;
-        btnPause.textContent = "Pausar";
+        btnPause.textContent = "Pause";
         startRaf();
       }
 
@@ -610,7 +610,7 @@
 
       btnPause.addEventListener("click", function () {
         paused = !paused;
-        btnPause.textContent = paused ? "Continuar" : "Pausar";
+        btnPause.textContent = paused ? "Resume" : "Pause";
       });
 
       btnBack.addEventListener("click", function () {
