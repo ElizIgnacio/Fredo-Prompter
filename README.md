@@ -28,7 +28,7 @@ O `index.html` precisa estar na **raiz** do branch escolhido (como neste projeto
 2. Cole o roteiro na caixa de texto.
 3. Ajuste **velocidade** (px/s) e **tamanho do texto** (px) nos campos numéricos.
 4. Opcional: defina **Tempo-alvo (mm:ss)**. Se for maior que zero, ao iniciar a **velocidade é calculada** para tentar terminar o texto nesse tempo.
-5. Clique em **Iniciar teleprompter**.
+5. Clique em **Iniciar Fredo-Prompter**.
 
 ### Durante a leitura
 
